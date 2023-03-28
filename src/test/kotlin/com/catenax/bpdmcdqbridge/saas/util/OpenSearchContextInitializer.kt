@@ -35,8 +35,6 @@ import org.testcontainers.lifecycle.Startable
 class OpenSearchContextInitializer : ApplicationContextInitializer<ConfigurableApplicationContext> {
     companion object {
         const val OPENSEARCH_PORT = 9200
-        const val openSearchAlias = "bpdm-opensearch"
-
         val openSearchContainer: GenericContainer<*> = GenericContainer("opensearchproject/opensearch:2.1.0")
             .withExposedPorts(OPENSEARCH_PORT)
             .waitingFor(HttpWaitStrategy()
@@ -55,18 +53,18 @@ class OpenSearchContextInitializer : ApplicationContextInitializer<ConfigurableA
                 cmd.hostConfig!!.withUlimits(arrayOf(Ulimit("nofile", 65536L, 65536L), Ulimit("memlock", -1L, -1L)))
             }
             .withNetwork(postgreSQLContainer.getNetwork())
-            .withNetworkAliases(openSearchAlias)
             .dependsOn(listOf<Startable>(postgreSQLContainer))
     }
 
     override fun initialize(applicationContext: ConfigurableApplicationContext) {
+        val openSearchAlias = applicationContext.environment.getProperty("bpdm.opensearch.alias")
+        openSearchContainer.withNetworkAliases(openSearchAlias)
         openSearchContainer.start()
         TestPropertyValues.of(
             "bpdm.opensearch.host=${openSearchContainer.host}",
             "bpdm.opensearch.port=${openSearchContainer.getMappedPort(OPENSEARCH_PORT)}",
             "bpdm.opensearch.scheme=http",
             "bpdm.opensearch.enabled=true",
-            "bpdm.opensearch.alias=${openSearchAlias}"
         ).applyTo(applicationContext.environment)
     }
 }

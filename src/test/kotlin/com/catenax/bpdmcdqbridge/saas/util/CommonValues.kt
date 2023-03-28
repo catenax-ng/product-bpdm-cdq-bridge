@@ -87,14 +87,6 @@ object CommonValues {
     val legalFormAbbreviation2 = "GmbH"
     val legalFormAbbreviation3 = "股份有限"
 
-    val legalFormCategoryName1 = "Limited Company"
-    val legalFormCategoryName2 = "Stock Company"
-    val legalFormCategoryName3 = "Private Foundation"
-
-    val legalFormCategoryUrl1 = "http://catenax-host/legal-category1"
-    val legalFormCategoryUrl2 = "http://catenax-host/legal-category2"
-    val legalFormCategoryUrl3 = "http://catenax-host/legal-category3"
-
     val identifierTypeTechnicalKey1 = "VAT_DE"
     val identifierTypeTechnicalKey2 = "VAT_US"
     val identifierTypeTechnicalKey3 = "VAT_FR"

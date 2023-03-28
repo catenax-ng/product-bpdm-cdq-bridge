@@ -33,24 +33,19 @@ import org.testcontainers.containers.PostgreSQLContainer
 class PostgreSQLContextInitializer : ApplicationContextInitializer<ConfigurableApplicationContext> {
     companion object {
 
-        const val postgresAlias = "bpdm-postgres"
         val postgreSQLContainer = PostgreSQLContainer("postgres:13.2")
-            .withEnv("cluster.name", "cdqbridge")
-            .withEnv("node.name", "bpdm-postgres")
             .withAccessToHost(true)
             .withNetwork(Network.SHARED)
-            .withNetworkAliases( postgresAlias)
-
 
 
     }
 
     override fun initialize(applicationContext: ConfigurableApplicationContext) {
-
+        val postgresAlias = applicationContext.environment.getProperty("bpdm.datasource.alias")
+        postgreSQLContainer.withNetworkAliases(postgresAlias)
 
         postgreSQLContainer.start()
         TestPropertyValues.of(
-            "bpdm.datasource.alias=${postgresAlias}",
             "spring.datasource.url=${postgreSQLContainer.jdbcUrl}",
             "spring.datasource.username=${postgreSQLContainer.username}",
             "spring.datasource.password=${postgreSQLContainer.password}",

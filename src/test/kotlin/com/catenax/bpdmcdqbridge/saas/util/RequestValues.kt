@@ -26,7 +26,6 @@ import org.eclipse.tractusx.bpdm.common.dto.response.type.TypeKeyNameUrlDto
 import org.eclipse.tractusx.bpdm.pool.api.model.request.LegalEntityPartnerCreateRequest
 import org.eclipse.tractusx.bpdm.pool.api.model.request.LegalEntityPartnerUpdateRequest
 import org.eclipse.tractusx.bpdm.pool.api.model.request.LegalFormRequest
-import org.eclipse.tractusx.bpdm.pool.api.model.request.SitePartnerCreateRequest
 
 object RequestValues {
 
@@ -68,8 +67,6 @@ object RequestValues {
         CommonValues.issuingBodyKey1,
         CommonValues.identifierStatusKey1
     )
-
-
 
 
     val legalForm1 = LegalFormRequest(
@@ -228,32 +225,6 @@ object RequestValues {
         properties = legalEntityCreate3.properties
     )
 
-    val siteCreate1 = SitePartnerCreateRequest(
-        site = SiteDto(
-            name = CommonValues.siteName1,
-            mainAddress = address1
-        ),
-        index = CommonValues.index1,
-        legalEntity = legalEntityUpdate1.bpn
-    )
-
-    val siteCreate2 = SitePartnerCreateRequest(
-        site = SiteDto(
-            name = CommonValues.siteName2,
-            mainAddress = address2
-        ),
-        index = CommonValues.index2,
-        legalEntity = legalEntityUpdate2.bpn
-    )
-
-    val siteCreate3 = SitePartnerCreateRequest(
-        site = SiteDto(
-            name = CommonValues.siteName3,
-            mainAddress = address3
-        ),
-        index = CommonValues.index3,
-        legalEntity = legalEntityUpdate3.bpn
-    )
 
 
 
