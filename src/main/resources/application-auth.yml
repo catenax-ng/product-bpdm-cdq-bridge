@@ -1,0 +1,18 @@
+bpdm:
+    security:
+        auth-server-url: http://localhost:8180
+        auth-url: ${bpdm.security.auth-server-url}/realms/${bpdm.security.realm}/protocol/openid-connect/auth
+        client-id: BPDM_Client
+        cors-origins: '*'
+        enabled: true
+        realm: master
+        refresh-url: ${bpdm.security.token-url}
+        token-url: ${bpdm.security.auth-server-url}/realms/${bpdm.security.realm}/protocol/openid-connect/token
+
+spring:
+    security:
+        oauth2:
+            resourceserver:
+                jwt:
+                    issuer-uri: ${bpdm.security.auth-server-url}/realms/${bpdm.security.realm}
+                    jwk-set-uri: ${bpdm.security.auth-server-url}/realms/${bpdm.security.realm}/protocol/openid-connect/certs

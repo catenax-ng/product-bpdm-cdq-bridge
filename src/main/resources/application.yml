@@ -1,3 +1,28 @@
+bpdm:
+    name: @project.name@
+    description: @project.description@
+    version: @project.version@
+    datasource:
+        host: localhost
+
+spring:
+    datasource:
+        url: jdbc:postgresql://${bpdm.datasource.host}:5432/bpdm
+        driverClassName: org.postgresql.Driver
+        username: bpdm
+        password:
+    jpa:
+        database-platform: org.hibernate.dialect.PostgreSQLDialect
+        properties:
+            hibernate:
+                default_schema: bpdmcdq
+    #Send updates and inserts out in batches to decrease network connections to the database
+                jdbc:
+                    batch_size: 16
+                order_inserts: true
+                order_updates: true
+    main:
+        allow-bean-definition-overriding: true
 management:
     endpoint:
         health:
@@ -8,8 +33,10 @@ management:
             enabled: true
         readinessState:
             enabled: true
+
 springdoc:
     api-docs:
+        enabled: true
         path: /docs/api-docs
     swagger-ui:
         csrf:
