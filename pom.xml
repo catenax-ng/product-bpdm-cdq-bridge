@@ -90,12 +90,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.eclipse.tractusx</groupId>
-            <artifactId>bpdm-pool-api</artifactId>
-            <version>${bpdm-version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-kotlin</artifactId>
         </dependency>

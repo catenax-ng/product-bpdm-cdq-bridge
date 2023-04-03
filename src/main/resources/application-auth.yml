@@ -16,3 +16,8 @@ spring:
                 jwt:
                     issuer-uri: ${bpdm.security.auth-server-url}/realms/${bpdm.security.realm}
                     jwk-set-uri: ${bpdm.security.auth-server-url}/realms/${bpdm.security.realm}/protocol/openid-connect/certs
+
+springdoc:
+    swagger-ui:
+      oauth:
+        clientId: PUBLIC_CLIENT
