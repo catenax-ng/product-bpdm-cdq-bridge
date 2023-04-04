@@ -47,6 +47,11 @@
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-client</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
         </dependency>
 
@@ -86,6 +91,12 @@
         <dependency>
             <groupId>org.eclipse.tractusx</groupId>
             <artifactId>bpdm-common</artifactId>
+            <version>${bpdm-version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.tractusx</groupId>
+            <artifactId>bpdm-pool-api</artifactId>
             <version>${bpdm-version}</version>
         </dependency>
 

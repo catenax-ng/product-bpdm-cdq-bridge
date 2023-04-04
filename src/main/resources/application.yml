@@ -4,6 +4,8 @@ bpdm:
     version: @project.version@
     datasource:
         host: localhost
+    pool-client:
+        url: http://localhost:8080
 
 spring:
     datasource:

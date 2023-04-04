@@ -20,15 +20,21 @@
 package com.catenax.bpdm.bridge.cdq.controller
 
 
-import com.catenax.bpdm.bridge.cdq.entity.ImportEntry
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
+import org.eclipse.tractusx.bpdm.common.dto.request.PaginationRequest
+import org.eclipse.tractusx.bpdm.common.dto.response.PageResponse
+import org.eclipse.tractusx.bpdm.pool.api.client.PoolClientImpl
+import org.eclipse.tractusx.bpdm.pool.api.model.request.AddressPropertiesSearchRequest
+import org.eclipse.tractusx.bpdm.pool.api.model.request.LegalEntityPropertiesSearchRequest
+import org.eclipse.tractusx.bpdm.pool.api.model.request.SitePropertiesSearchRequest
+import org.eclipse.tractusx.bpdm.pool.api.model.response.LegalEntityMatchResponse
 import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/saas")
-class SaasController {
+class SaasController(val poolClient: PoolClientImpl) {
 
     @Operation(summary = "Throw a not implemented error")
     @ApiResponses(
@@ -37,8 +43,13 @@ class SaasController {
         ]
     )
     @GetMapping("/endpoint")
-    fun throwNotImplementedError(): ImportEntry {
-        throw NotImplementedError("This endpoint is not implemented yet.")
+    fun throwNotImplementedError(): PageResponse<LegalEntityMatchResponse> {
+        return poolClient.legalEntities().getLegalEntities(
+            LegalEntityPropertiesSearchRequest.EmptySearchRequest,
+            AddressPropertiesSearchRequest.EmptySearchRequest, SitePropertiesSearchRequest.EmptySearchRequest,
+            PaginationRequest()
+        )
+
     }
 
 }
