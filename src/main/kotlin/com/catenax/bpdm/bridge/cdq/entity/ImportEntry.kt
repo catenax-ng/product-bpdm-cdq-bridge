@@ -17,28 +17,26 @@
  * SPDX-License-Identifier: Apache-2.0
  ******************************************************************************/
 
-package com.catenax.bpdm.bridge.cdq.controller
+package com.catenax.bpdm.bridge.cdq.entity
+
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.Index
+import jakarta.persistence.Table
+import org.eclipse.tractusx.bpdm.common.model.BaseEntity
 
 
-import com.catenax.bpdm.bridge.cdq.entity.ImportEntry
-import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.responses.ApiResponse
-import io.swagger.v3.oas.annotations.responses.ApiResponses
-import org.springframework.web.bind.annotation.*
-
-@RestController
-@RequestMapping("/api/saas")
-class SaasController {
-
-    @Operation(summary = "Throw a not implemented error")
-    @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "500", description = "Not implemented error")
-        ]
-    )
-    @GetMapping("/endpoint")
-    fun throwNotImplementedError(): ImportEntry {
-        throw NotImplementedError("This endpoint is not implemented yet.")
-    }
-
-}
+@Entity
+@Table(
+    name = "import_entries",
+    indexes = [
+        Index(columnList = "import_id"),
+        Index(columnList = "bpn")
+    ]
+)
+class ImportEntry(
+    @Column(name = "import_id", nullable = false, unique = true)
+    var importIdentifier: String,
+    @Column(name = "bpn", nullable = false)
+    var bpn: String
+) : BaseEntity()

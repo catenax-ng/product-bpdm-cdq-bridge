@@ -27,4 +27,4 @@ mvnw.cmd
 /charts/bridge/Chart.lock
 
 #Developer application properties
-/product-bpdm-cdq-bridge/src/main/resources/application-developer.yml
+/src/main/resources/application-developer.yml
