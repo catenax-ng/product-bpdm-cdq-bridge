@@ -20,6 +20,8 @@
 package com.catenax.bpdm.bridge.cdq.service
 
 import com.catenax.bpdm.bridge.cdq.entity.SyncRecord
+import com.catenax.bpdm.bridge.cdq.exception.BpdmSyncConflictException
+import com.catenax.bpdm.bridge.cdq.exception.BpdmSyncStateException
 import com.catenax.bpdm.bridge.cdq.repository.SyncRecordRepository
 import mu.KotlinLogging
 import org.eclipse.tractusx.bpdm.pool.api.model.SyncStatus
@@ -27,8 +29,10 @@ import org.eclipse.tractusx.bpdm.pool.api.model.SyncType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Transactional
+import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
+import java.time.temporal.ChronoUnit
 
 /**
  * Uses transaction isolation level "serializable" in order to make sure that in case of parallel execution on different spring boot instances,
@@ -55,6 +59,75 @@ class SyncRecordService(
             )
             syncRecordRepository.save(newEntry)
         }
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    fun setSynchronizationStart(type: SyncType): SyncRecord {
+        val record = getOrCreateRecord(type)
+
+        if (record.status == SyncStatus.RUNNING)
+            throw BpdmSyncConflictException(SyncType.SAAS_IMPORT)
+
+        logger.debug { "Set sync of type ${record.type} to status ${SyncStatus.RUNNING}" }
+
+        record.errorDetails = null
+
+        if (record.status != SyncStatus.ERROR) {
+            record.fromTime = record.startedAt ?: syncStartTime
+            record.errorDetails = null
+            record.errorSave = null
+            record.startedAt = Instant.now().truncatedTo(ChronoUnit.MICROS)
+            record.finishedAt = null
+            record.count = 0
+            record.progress = 0f
+        }
+        record.status = SyncStatus.RUNNING
+
+        return syncRecordRepository.save(record)
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    fun setProgress(type: SyncType, count: Int, progress: Float): SyncRecord {
+        val record = getOrCreateRecord(type)
+        if (record.status != SyncStatus.RUNNING)
+            throw BpdmSyncStateException("Synchronization of type ${record.type} can't change progress when not running.")
+
+        logger.debug { "Update progress of sync type ${record.type} to $progress" }
+
+        record.count = count
+        record.progress = progress
+
+        return syncRecordRepository.save(record)
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    fun setSynchronizationError(type: SyncType, errorMessage: String, saveState: String?): SyncRecord {
+        val record = getOrCreateRecord(type)
+        logger.debug { "Set sync of type ${record.type} to status ${SyncStatus.ERROR} with message $errorMessage" }
+
+        record.finishedAt = Instant.now().truncatedTo(ChronoUnit.MICROS)
+        record.status = SyncStatus.ERROR
+        record.errorDetails = errorMessage.take(255)
+        record.errorSave = saveState
+
+        return syncRecordRepository.save(record)
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    fun setSynchronizationSuccess(type: SyncType): SyncRecord {
+        val record = getOrCreateRecord(type)
+        if (record.status != SyncStatus.RUNNING)
+            throw BpdmSyncStateException("Synchronization of type ${record.type} can't switch from state ${record.status} to ${SyncStatus.SUCCESS}.")
+
+        logger.debug { "Set sync of type ${record.type} to status ${SyncStatus.SUCCESS}" }
+
+        record.finishedAt = Instant.now().truncatedTo(ChronoUnit.MICROS)
+        record.progress = 1f
+        record.status = SyncStatus.SUCCESS
+        record.errorDetails = null
+        record.errorSave = null
+
+        return syncRecordRepository.save(record)
     }
 
 

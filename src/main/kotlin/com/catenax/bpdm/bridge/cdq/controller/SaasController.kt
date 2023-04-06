@@ -31,12 +31,8 @@ import org.eclipse.tractusx.bpdm.common.dto.request.PaginationRequest
 import org.eclipse.tractusx.bpdm.common.dto.response.PageResponse
 import org.eclipse.tractusx.bpdm.pool.api.client.PoolClientImpl
 import org.eclipse.tractusx.bpdm.pool.api.model.ImportIdEntry
-import org.eclipse.tractusx.bpdm.pool.api.model.request.AddressPropertiesSearchRequest
 import org.eclipse.tractusx.bpdm.pool.api.model.request.ImportIdFilterRequest
-import org.eclipse.tractusx.bpdm.pool.api.model.request.LegalEntityPropertiesSearchRequest
-import org.eclipse.tractusx.bpdm.pool.api.model.request.SitePropertiesSearchRequest
 import org.eclipse.tractusx.bpdm.pool.api.model.response.ImportIdMappingResponse
-import org.eclipse.tractusx.bpdm.pool.api.model.response.LegalEntityMatchResponse
 import org.eclipse.tractusx.bpdm.pool.api.model.response.SyncResponse
 import org.springdoc.core.annotations.ParameterObject
 import org.springframework.web.bind.annotation.*
@@ -49,21 +45,6 @@ class SaasController(
     private val adapterConfigProperties: SaasAdapterConfigProperties
 ) {
 
-    @Operation(summary = "Throw a not implemented error")
-    @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "500", description = "Not implemented error")
-        ]
-    )
-    @GetMapping("/endpoint")
-    fun throwNotImplementedError(): PageResponse<LegalEntityMatchResponse> {
-        return poolClient.legalEntities().getLegalEntities(
-            LegalEntityPropertiesSearchRequest.EmptySearchRequest,
-            AddressPropertiesSearchRequest.EmptySearchRequest, SitePropertiesSearchRequest.EmptySearchRequest,
-            PaginationRequest()
-        )
-
-    }
 
     @Operation(
         summary = "Paginate Identifier Mappings by CX-Pool Identifiers",
@@ -125,6 +106,28 @@ class SaasController(
     @GetMapping("/business-partner/sync")
     fun getSyncStatus(): SyncResponse {
         return partnerImportService.getImportStatus()
+    }
+
+    @Operation(
+        summary = "Import new business partner records from SaaS",
+        description = "Triggers an asynchronous import of new business partner records from SaaS. " +
+                "A SaaS record counts as new when it does not have a BPN and the BPDM service does not already have a record with the same SaaS ID. " +
+                "This import only regards records with a modifiedAfter timestamp since the last import."
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Import successfully started"),
+            ApiResponse(responseCode = "409", description = "Import already running"),
+            ApiResponse(
+                responseCode = "500",
+                description = "Import couldn't start to unexpected error",
+                content = [Content()]
+            )
+        ]
+    )
+    @PostMapping("/business-partner/sync")
+    fun importBusinessPartners(): SyncResponse {
+        return partnerImportService.importAsync()
     }
 
 }
