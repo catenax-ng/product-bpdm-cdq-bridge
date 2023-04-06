@@ -19,9 +19,8 @@
 
 package com.catenax.bpdm.bridge.cdq.service
 
-import com.catenax.bpdm.bridge.cdq.dto.SyncResponse
-import com.catenax.bpdm.bridge.cdq.entity.SyncRecord
 import org.eclipse.tractusx.bpdm.common.dto.response.PageResponse
+import org.eclipse.tractusx.bpdm.pool.api.model.response.SyncResponse
 import org.springframework.data.domain.Page
 
 

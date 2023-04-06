@@ -33,6 +33,7 @@ import org.eclipse.tractusx.bpdm.pool.api.client.PoolClientImpl
 import org.eclipse.tractusx.bpdm.pool.api.model.ImportIdEntry
 import org.eclipse.tractusx.bpdm.pool.api.model.request.ImportIdFilterRequest
 import org.eclipse.tractusx.bpdm.pool.api.model.response.ImportIdMappingResponse
+import org.eclipse.tractusx.bpdm.pool.api.model.response.LegalEntityMatchResponse
 import org.springdoc.core.annotations.ParameterObject
 import org.springframework.web.bind.annotation.*
 import com.catenax.bpdm.bridge.cdq.dto.SyncResponse
@@ -107,6 +108,8 @@ class SaasController(
     fun getSyncStatus(): SyncResponse {
         return partnerImportService.getImportStatus()
     }
+
+
 
     @Operation(
         summary = "Import new business partner records from SaaS",

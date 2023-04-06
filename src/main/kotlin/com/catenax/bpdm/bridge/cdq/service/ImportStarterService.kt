@@ -27,8 +27,10 @@ import mu.KotlinLogging
 import org.eclipse.tractusx.bpdm.common.dto.request.PaginationRequest
 import org.eclipse.tractusx.bpdm.common.dto.response.PageResponse
 import org.eclipse.tractusx.bpdm.pool.api.model.ImportIdEntry
+import org.eclipse.tractusx.bpdm.pool.api.model.SyncType
 import org.eclipse.tractusx.bpdm.pool.api.model.response.ImportIdMappingResponse
 
+import org.eclipse.tractusx.bpdm.pool.api.model.response.SyncResponse
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 
@@ -38,7 +40,7 @@ import org.springframework.stereotype.Service
 @Service
 class ImportStarterService(
     private val syncRecordService: SyncRecordService,
-    private val importEntryRepository: ImportEntryRepository,
+    private val importEntryRepository: ImportEntryRepository
     private val importService: PartnerImportService,
 ) {
 
@@ -62,8 +64,9 @@ class ImportStarterService(
     }
 
     fun getImportStatus(): SyncResponse {
-        return syncRecordService.getOrCreateRecord(SyncRecord.BridgeSyncType.SAAS_IMPORT).toDto()
+        return syncRecordService.getOrCreateRecord(SyncType.SAAS_IMPORT).toDto()
     }
+
 
     /**
      * Import records asynchronously and return a [SyncResponse] with information about the started import
