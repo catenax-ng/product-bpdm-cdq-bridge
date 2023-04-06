@@ -24,6 +24,7 @@ import com.catenax.bpdm.bridge.cdq.config.SaasAdapterConfigProperties
 import com.catenax.bpdm.bridge.cdq.exception.BpdmRequestSizeException
 import com.catenax.bpdm.bridge.cdq.service.ImportStarterService
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import org.eclipse.tractusx.bpdm.common.dto.request.PaginationRequest
@@ -36,6 +37,7 @@ import org.eclipse.tractusx.bpdm.pool.api.model.request.LegalEntityPropertiesSea
 import org.eclipse.tractusx.bpdm.pool.api.model.request.SitePropertiesSearchRequest
 import org.eclipse.tractusx.bpdm.pool.api.model.response.ImportIdMappingResponse
 import org.eclipse.tractusx.bpdm.pool.api.model.response.LegalEntityMatchResponse
+import org.eclipse.tractusx.bpdm.pool.api.model.response.SyncResponse
 import org.springdoc.core.annotations.ParameterObject
 import org.springframework.web.bind.annotation.*
 
@@ -104,6 +106,25 @@ class SaasController(
                 adapterConfigProperties.requestSizeLimit
             )
         return partnerImportService.getImportIdEntries(importIdFilterRequest.importIdentifiers)
+    }
+
+    @Operation(
+        summary = "Fetch information about the SaaS synchronization",
+        description = "Fetch information about the latest import (either ongoing or already finished)"
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Import information found"),
+            ApiResponse(
+                responseCode = "500",
+                description = "Fetching failed (no connection to database)",
+                content = [Content()]
+            )
+        ]
+    )
+    @GetMapping("/business-partner/sync")
+    fun getSyncStatus(): SyncResponse {
+        return partnerImportService.getImportStatus()
     }
 
 }

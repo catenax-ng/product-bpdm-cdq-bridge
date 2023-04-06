@@ -24,7 +24,9 @@ import com.catenax.bpdm.bridge.cdq.repository.ImportEntryRepository
 import org.eclipse.tractusx.bpdm.common.dto.request.PaginationRequest
 import org.eclipse.tractusx.bpdm.common.dto.response.PageResponse
 import org.eclipse.tractusx.bpdm.pool.api.model.ImportIdEntry
+import org.eclipse.tractusx.bpdm.pool.api.model.SyncType
 import org.eclipse.tractusx.bpdm.pool.api.model.response.ImportIdMappingResponse
+import org.eclipse.tractusx.bpdm.pool.api.model.response.SyncResponse
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 
@@ -33,6 +35,7 @@ import org.springframework.stereotype.Service
  */
 @Service
 class ImportStarterService(
+    private val syncRecordService: SyncRecordService,
     private val importEntryRepository: ImportEntryRepository
 ) {
 
@@ -53,5 +56,10 @@ class ImportStarterService(
 
         return ImportIdMappingResponse(foundEntries, missingEntries)
     }
+
+    fun getImportStatus(): SyncResponse {
+        return syncRecordService.getOrCreateRecord(SyncType.SAAS_IMPORT).toDto()
+    }
+
 
 }
