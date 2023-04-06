@@ -20,6 +20,7 @@
 package com.catenax.bpdm.bridge.cdq.config
 
 
+import org.eclipse.tractusx.bpdm.gate.api.client.GateClientImpl
 import org.eclipse.tractusx.bpdm.pool.api.client.PoolClientImpl
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext
@@ -45,7 +46,7 @@ class ClientsConfig {
         havingValue = "true"
     )
     fun poolClient(
-        poolSecurityConfigProperties: PoolSecurityConfigProperties,
+        clientSecurityConfigProperties: ClientSecurityConfigProperties,
         webServerAppCtxt: ServletWebServerApplicationContext,
         env: Environment,
         clientRegistrationRepository: ClientRegistrationRepository,
@@ -54,7 +55,7 @@ class ClientsConfig {
         val url =
             env.getProperty("bpdm.pool-client.url") ?: throw IllegalStateException("bpdm.pool-client.url not found")
         val webClient =
-            createWebClient(poolSecurityConfigProperties, clientRegistrationRepository, authorizedClientService, url)
+            createWebClient(clientSecurityConfigProperties, clientRegistrationRepository, authorizedClientService, url)
         return PoolClientImpl { webClient }
     }
 
@@ -64,15 +65,52 @@ class ClientsConfig {
         value = ["bpdm.pool-client.pool-security-enabled"],
         havingValue = "false", matchIfMissing = true
     )
-    fun poolClientNoAuth(env: Environment, poolSecurityConfigProperties: PoolSecurityConfigProperties): PoolClientImpl {
+    fun poolClientNoAuth(
+        env: Environment,
+        clientSecurityConfigProperties: ClientSecurityConfigProperties
+    ): PoolClientImpl {
         val url =
             env.getProperty("bpdm.pool-client.url") ?: throw IllegalStateException("bpdm.pool-client.url not found")
         return PoolClientImpl { WebClient.create(url) }
     }
 
+    @Bean
+    @ConditionalOnProperty(
+        value = ["bpdm.gate-client.url.gateSecurityEnabled"],
+        havingValue = "false", matchIfMissing = true
+    )
+    fun gateClientNoAuth(
+        env: Environment,
+        clientSecurityConfigProperties: ClientSecurityConfigProperties
+    ): GateClientImpl {
+        val url =
+            env.getProperty("bpdm.gate-client.url") ?: throw IllegalStateException("bpdm.gate-client.url not found")
+        return GateClientImpl { WebClient.create(url) }
+    }
+
+
+    @Bean
+    @ConditionalOnProperty(
+        value = ["bpdm.gate-client.url.poolSecurityEnabled"],
+        havingValue = "true"
+    )
+    fun gateClient(
+        clientSecurityConfigProperties: ClientSecurityConfigProperties,
+        webServerAppCtxt: ServletWebServerApplicationContext,
+        env: Environment,
+        clientRegistrationRepository: ClientRegistrationRepository,
+        authorizedClientService: OAuth2AuthorizedClientService
+    ): GateClientImpl {
+        val url =
+            env.getProperty("bpdm.gate-client.url") ?: throw IllegalStateException("bpdm.gate-client.url not found")
+        val webClient =
+            createWebClient(clientSecurityConfigProperties, clientRegistrationRepository, authorizedClientService, url)
+        return GateClientImpl { webClient }
+    }
+
 
     private fun createWebClient(
-        poolSecurityConfigProperties: PoolSecurityConfigProperties,
+        clientSecurityConfigProperties: ClientSecurityConfigProperties,
         clientRegistrationRepository: ClientRegistrationRepository,
         authorizedClientService: OAuth2AuthorizedClientService,
         baseUrl: String
@@ -83,7 +121,7 @@ class ClientsConfig {
         authorizedClientManager.setAuthorizedClientProvider(authorizedClientProvider)
 
         val oauth = ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager)
-        oauth.setDefaultClientRegistrationId(poolSecurityConfigProperties.oauth2ClientRegistration)
+        oauth.setDefaultClientRegistrationId(clientSecurityConfigProperties.oauth2ClientRegistration)
         return WebClient.builder()
             .apply(oauth.oauth2Configuration())
             .baseUrl(baseUrl)
