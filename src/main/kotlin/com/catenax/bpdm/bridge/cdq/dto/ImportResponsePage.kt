@@ -17,27 +17,18 @@
  * SPDX-License-Identifier: Apache-2.0
  ******************************************************************************/
 
-package com.catenax.bpdm.bridge.cdq.config
-
-import org.springframework.boot.context.properties.ConfigurationProperties
+package com.catenax.bpdm.bridge.cdq.dto
 
 
-@ConfigurationProperties(prefix = "bpdm.saas")
-class SaasAdapterConfigProperties(
+import org.eclipse.tractusx.bpdm.common.dto.response.AddressPartnerResponse
+import org.eclipse.tractusx.bpdm.pool.api.model.response.AddressPartnerCreateResponse
+import org.eclipse.tractusx.bpdm.pool.api.model.response.LegalEntityPartnerCreateResponse
+import org.eclipse.tractusx.bpdm.pool.api.model.response.SitePartnerCreateResponse
 
-    storage: String = "storage_id",
-    val datasource: String = "datasource_id",
-    val importLimit: Int = 100,
-    val legalEntityType: String = "LEGAL_ENTITY",
-    val siteType: String = "ORGANIZATIONAL_UNIT",
-    val addressType: String = "BP_ADDRESS",
-    val parentRelationType: String = "PARENT",
-    val bpnKey: String = "CX_BPN",
-    val treatInvalidBpnAsNew: Boolean = false,
-    val requestSizeLimit: Int = 500
-) {
-    private val exchangeApiUrl: String = "data-exchange/rest/v4"
-    val readBusinessPartnerUrl = "/${exchangeApiUrl}/storages/${storage}/businesspartners"
-
-
-}
+data class ImportResponsePage(
+    val totalElements: Int,
+    val nextStartAfter: String?,
+    val legalEntities: UpsertCollection<LegalEntityPartnerCreateResponse, LegalEntityPartnerCreateResponse>,
+    val sites: UpsertCollection<SitePartnerCreateResponse, SitePartnerCreateResponse>,
+    val addresses: UpsertCollection<AddressPartnerCreateResponse, AddressPartnerResponse>
+)

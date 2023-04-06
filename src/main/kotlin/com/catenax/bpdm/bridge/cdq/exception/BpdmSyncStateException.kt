@@ -17,27 +17,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ******************************************************************************/
 
-package com.catenax.bpdm.bridge.cdq.config
+package com.catenax.bpdm.bridge.cdq.exception
 
-import org.springframework.boot.context.properties.ConfigurationProperties
-
-
-@ConfigurationProperties(prefix = "bpdm.saas")
-class SaasAdapterConfigProperties(
-
-    storage: String = "storage_id",
-    val datasource: String = "datasource_id",
-    val importLimit: Int = 100,
-    val legalEntityType: String = "LEGAL_ENTITY",
-    val siteType: String = "ORGANIZATIONAL_UNIT",
-    val addressType: String = "BP_ADDRESS",
-    val parentRelationType: String = "PARENT",
-    val bpnKey: String = "CX_BPN",
-    val treatInvalidBpnAsNew: Boolean = false,
-    val requestSizeLimit: Int = 500
-) {
-    private val exchangeApiUrl: String = "data-exchange/rest/v4"
-    val readBusinessPartnerUrl = "/${exchangeApiUrl}/storages/${storage}/businesspartners"
-
-
-}
+class BpdmSyncStateException(
+    msg: String
+) : RuntimeException(msg)

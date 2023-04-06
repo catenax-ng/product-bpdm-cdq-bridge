@@ -17,27 +17,11 @@
  * SPDX-License-Identifier: Apache-2.0
  ******************************************************************************/
 
-package com.catenax.bpdm.bridge.cdq.config
+package com.catenax.bpdm.bridge.cdq.dto
 
-import org.springframework.boot.context.properties.ConfigurationProperties
+import org.eclipse.tractusx.bpdm.common.dto.saas.BusinessPartnerSaas
 
-
-@ConfigurationProperties(prefix = "bpdm.saas")
-class SaasAdapterConfigProperties(
-
-    storage: String = "storage_id",
-    val datasource: String = "datasource_id",
-    val importLimit: Int = 100,
-    val legalEntityType: String = "LEGAL_ENTITY",
-    val siteType: String = "ORGANIZATIONAL_UNIT",
-    val addressType: String = "BP_ADDRESS",
-    val parentRelationType: String = "PARENT",
-    val bpnKey: String = "CX_BPN",
-    val treatInvalidBpnAsNew: Boolean = false,
-    val requestSizeLimit: Int = 500
-) {
-    private val exchangeApiUrl: String = "data-exchange/rest/v4"
-    val readBusinessPartnerUrl = "/${exchangeApiUrl}/storages/${storage}/businesspartners"
-
-
-}
+data class BusinessPartnerWithParentId(
+    val partner: BusinessPartnerSaas,
+    val parentId: String
+)
