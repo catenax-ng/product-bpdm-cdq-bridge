@@ -26,4 +26,6 @@ import org.springframework.data.repository.PagingAndSortingRepository
 
 interface ImportEntryRepository : CrudRepository<ImportEntry, Long>, PagingAndSortingRepository<ImportEntry, Long> {
 
+    fun findByImportIdentifierIn(importIdentifier: Collection<String>): Set<ImportEntry>
+
 }
