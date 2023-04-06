@@ -17,19 +17,13 @@
  * SPDX-License-Identifier: Apache-2.0
  ******************************************************************************/
 
-package com.catenax.bpdm.bridge.cdq.service
+package com.catenax.bpdm.bridge.cdq.repository
 
 import com.catenax.bpdm.bridge.cdq.entity.SyncRecord
-import org.eclipse.tractusx.bpdm.common.dto.response.PageResponse
-import org.eclipse.tractusx.bpdm.pool.api.model.response.SyncResponse
-import org.springframework.data.domain.Page
+import org.eclipse.tractusx.bpdm.pool.api.model.SyncType
+import org.springframework.data.repository.CrudRepository
 
+interface SyncRecordRepository : CrudRepository<SyncRecord, Long> {
 
-fun <S, T> Page<S>.toDto(dtoContent: Collection<T>): PageResponse<T> {
-    return PageResponse(this.totalElements, this.totalPages, this.number, this.numberOfElements, dtoContent)
-}
-
-
-fun SyncRecord.toDto(): SyncResponse {
-    return SyncResponse(type, status, count, progress, errorDetails, startedAt, finishedAt)
+    fun findByType(type: SyncType): SyncRecord?
 }
