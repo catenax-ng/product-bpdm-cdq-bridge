@@ -31,8 +31,10 @@ import org.eclipse.tractusx.bpdm.common.dto.response.PageResponse
 import org.eclipse.tractusx.bpdm.pool.api.client.PoolClientImpl
 import org.eclipse.tractusx.bpdm.pool.api.model.ImportIdEntry
 import org.eclipse.tractusx.bpdm.pool.api.model.request.AddressPropertiesSearchRequest
+import org.eclipse.tractusx.bpdm.pool.api.model.request.ImportIdFilterRequest
 import org.eclipse.tractusx.bpdm.pool.api.model.request.LegalEntityPropertiesSearchRequest
 import org.eclipse.tractusx.bpdm.pool.api.model.request.SitePropertiesSearchRequest
+import org.eclipse.tractusx.bpdm.pool.api.model.response.ImportIdMappingResponse
 import org.eclipse.tractusx.bpdm.pool.api.model.response.LegalEntityMatchResponse
 import org.springdoc.core.annotations.ParameterObject
 import org.springframework.web.bind.annotation.*
@@ -79,6 +81,29 @@ class SaasController(
         if (paginationRequest.size > adapterConfigProperties.requestSizeLimit)
             BpdmRequestSizeException(paginationRequest.size, adapterConfigProperties.requestSizeLimit)
         return partnerImportService.getImportIdEntries(paginationRequest)
+    }
+
+    @Operation(
+        summary = "Filter Identifier Mappings by CX-Pool Identifiers",
+        description = "Specify a range of CX-Pool Identifiers to get the corresponding mapping to their Business Partner Numbers"
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "The found import identifier mappings"),
+            ApiResponse(
+                responseCode = "400",
+                description = "On malformed requests or exceeding the request size of \${bpdm.saas.request-size-limit}"
+            ),
+        ]
+    )
+    @PostMapping("/identifier-mappings/filter")
+    fun getImportEntries(@RequestBody importIdFilterRequest: ImportIdFilterRequest): ImportIdMappingResponse {
+        if (importIdFilterRequest.importIdentifiers.size > adapterConfigProperties.requestSizeLimit)
+            BpdmRequestSizeException(
+                importIdFilterRequest.importIdentifiers.size,
+                adapterConfigProperties.requestSizeLimit
+            )
+        return partnerImportService.getImportIdEntries(importIdFilterRequest.importIdentifiers)
     }
 
 }
