@@ -1,3 +1,20 @@
+bpdm:
+    opensearch:
+        enabled: false
+        refresh-on-write: true
+        alias: bpdm-opensearch
+    datasource:
+        alias: bpdm-postgres
+    saas:
+        api-key: test-saas-api-key
+        datasource: test-saas-datasource
+        enabled: true
+        host: http://localhost
+        storage: test-saas-storage
 logging:
     level:
         root: INFO
+spring:
+    datasource:
+        hikari:
+            maximum-pool-size: 2

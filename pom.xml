@@ -23,6 +23,8 @@
         <bpdm-version>4.0.0-SNAPSHOT</bpdm-version>
         <postgres.version>42.5.1</postgres.version>
         <flyway.version>8.5.12</flyway.version>
+        <testcontainers.version>1.17.2</testcontainers.version>
+        <wiremock.version>2.35.0</wiremock.version>
     </properties>
 
     <pluginRepositories>
@@ -123,6 +125,25 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
             <version>${flyway.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock-jre8-standalone</artifactId>
+            <version>${wiremock.version}</version>
+            <scope>test</scope>
         </dependency>
 
         <!-- OpenAPI 3 auto API documentation library for Spring Boot -->
