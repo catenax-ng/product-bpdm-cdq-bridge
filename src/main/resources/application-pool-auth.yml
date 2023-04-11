@@ -1,7 +1,6 @@
 bpdm:
     client:
         oauth2-client-registration: bridge-client
-    pool-client:
         pool-security-enabled: true
 
 spring:
