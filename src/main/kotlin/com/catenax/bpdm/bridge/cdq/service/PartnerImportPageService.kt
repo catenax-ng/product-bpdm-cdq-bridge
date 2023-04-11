@@ -62,8 +62,6 @@ class PartnerImportPageService(
 
         logger.debug { "Received ${partnerCollection.values.size} to import from SaaS" }
 
-        addNewMetadata(partnerCollection.values)
-
         val validPartners = partnerCollection.values.filter { isValid(it) }
         val (noBpn, validBpn) = partitionHasNoBpnAndValidBpn(validPartners)
 
@@ -77,51 +75,6 @@ class PartnerImportPageService(
             UpsertCollection(createdSites, updatedSites),
             UpsertCollection(createdAddresses, updatedAddresses)
         )
-    }
-
-    private fun addNewMetadata(partners: Collection<BusinessPartnerSaas>) {
-        partners
-            .flatMap { it.identifiers.mapNotNull { id -> if (id.status?.technicalKey == null) null else id.status } }
-            .associateBy { it.technicalKey }
-            // original code without client , what to do since pagination is fixed to 10 elements and the original says unPaged
-            // .minus(metadataService.getIdentifierStati(Pageable.unpaged()).content.map { it.technicalKey }.toSet())
-            .minus(poolClient.metadata().getIdentifierStati(PaginationRequest()).content.map { it.technicalKey }
-                .toSet())
-            .values
-            .map { mappingService.toRequest(it) }
-            .forEach { poolClient.metadata().createIdentifierStatus(it) }
-
-        partners
-            .flatMap { it.identifiers.mapNotNull { id -> if (id.type?.technicalKey == null) null else id.type } }
-            .associateBy { it.technicalKey }
-            // original code without client , what to do since pagination is fixed to 10 elements and the original says unPaged
-            //.minus(metadataService.getIdentifierTypes(Pageable.unpaged()).content.map { it.technicalKey }.toSet())
-            .minus(poolClient.metadata().getIdentifierTypes(PaginationRequest()).content.map { it.technicalKey }
-                .toSet())
-            .values
-            .map { mappingService.toRequest(it) }
-            .forEach { poolClient.metadata().createIdentifierType(it) }
-
-        partners
-            .flatMap { it.identifiers.mapNotNull { id -> if (id.issuingBody?.technicalKey == null) null else id.issuingBody } }
-            .associateBy { it.technicalKey }
-            // original code without client , what to do since pagination is fixed to 10 elements and the original says unPaged
-            // .minus(metadataService.getIssuingBodies(Pageable.unpaged()).content.map { it.technicalKey }.toSet())
-            .minus(poolClient.metadata().getIssuingBodies(PaginationRequest()).content.map { it.technicalKey }.toSet())
-            .values
-            .map { mappingService.toRequest(it) }
-            .forEach { poolClient.metadata().createIssuingBody(it) }
-
-        partners
-            .filter { it.legalForm?.technicalKey != null }
-            .map { it.legalForm!! to it }
-            .associateBy { it.first.technicalKey }
-            // original code without client , what to do since pagination is fixed to 10 elements and the original says unPaged
-            //.minus(metadataService.getLegalForms(Pageable.unpaged()).content.map { it.technicalKey }.toSet())
-            .minus(poolClient.metadata().getLegalForms(PaginationRequest()).content.map { it.technicalKey }.toSet())
-            .values
-            .map { mappingService.toRequest(it.first, it.second) }
-            .forEach { poolClient.metadata().createLegalForm(it) }
     }
 
     private fun createPartners(partners: Collection<BusinessPartnerSaas>):

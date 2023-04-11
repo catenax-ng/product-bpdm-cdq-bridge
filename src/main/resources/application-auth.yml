@@ -1,13 +1,13 @@
 bpdm:
     security:
+        enabled: true
+        cors-origins: '*'
+        client-id: BPDM_Client
+        realm: master
         auth-server-url: http://localhost:8180
         auth-url: ${bpdm.security.auth-server-url}/realms/${bpdm.security.realm}/protocol/openid-connect/auth
-        client-id: BPDM_Client
-        cors-origins: '*'
-        enabled: true
-        realm: master
-        refresh-url: ${bpdm.security.token-url}
         token-url: ${bpdm.security.auth-server-url}/realms/${bpdm.security.realm}/protocol/openid-connect/token
+        refresh-url: ${bpdm.security.token-url}
 
 spring:
     security:
