@@ -1,7 +1,6 @@
 bpdm:
     client:
         oauth2-client-registration: bridge-client
-    gate-client:
         gate-security-enabled: true
 
 spring:
@@ -17,7 +16,3 @@ spring:
                         client-id: ${bpdm.security.client-id}
                         client-secret: ${bpdm.security.credentials.secret}
                         provider: catena-keycloak-provider
-            resourceserver:
-                jwt:
-                    issuer-uri: ${bpdm.security.auth-server-url}/realms/${bpdm.security.realm}
-                    jwk-set-uri: ${bpdm.security.auth-server-url}/realms/${bpdm.security.realm}/protocol/openid-connect/certs

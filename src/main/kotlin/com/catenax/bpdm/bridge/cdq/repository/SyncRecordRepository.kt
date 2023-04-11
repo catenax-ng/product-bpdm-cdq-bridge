@@ -20,10 +20,9 @@
 package com.catenax.bpdm.bridge.cdq.repository
 
 import com.catenax.bpdm.bridge.cdq.entity.SyncRecord
-import org.eclipse.tractusx.bpdm.pool.api.model.SyncType
 import org.springframework.data.repository.CrudRepository
 
 interface SyncRecordRepository : CrudRepository<SyncRecord, Long> {
 
-    fun findByType(type: SyncType): SyncRecord?
+    fun findByType(type: SyncRecord.BridgeSyncType): SyncRecord?
 }
