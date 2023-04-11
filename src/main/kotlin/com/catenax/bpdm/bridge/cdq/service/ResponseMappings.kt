@@ -19,7 +19,9 @@
 
 package com.catenax.bpdm.bridge.cdq.service
 
+import com.catenax.bpdm.bridge.cdq.entity.SyncRecord
 import org.eclipse.tractusx.bpdm.common.dto.response.PageResponse
+import org.eclipse.tractusx.bpdm.pool.api.model.SyncType
 import org.eclipse.tractusx.bpdm.pool.api.model.response.SyncResponse
 import org.springframework.data.domain.Page
 
@@ -30,5 +32,5 @@ fun <S, T> Page<S>.toDto(dtoContent: Collection<T>): PageResponse<T> {
 
 
 fun SyncRecord.toDto(): SyncResponse {
-    return SyncResponse(type, status, count, progress, errorDetails, startedAt, finishedAt)
+    return SyncResponse(SyncType.valueOf(type.toString()), status, count, progress, errorDetails, startedAt, finishedAt)
 }

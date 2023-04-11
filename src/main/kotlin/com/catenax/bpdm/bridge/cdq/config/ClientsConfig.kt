@@ -42,7 +42,7 @@ class ClientsConfig {
 
     @Bean
     @ConditionalOnProperty(
-        value = ["bpdm.pool-client.pool-security-enabled"],
+        value = ["bpdm.client.pool-security-enabled"],
         havingValue = "true"
     )
     fun poolClient(
@@ -62,7 +62,7 @@ class ClientsConfig {
 
     @Bean
     @ConditionalOnProperty(
-        value = ["bpdm.pool-client.pool-security-enabled"],
+        value = ["bpdm.client.pool-security-enabled"],
         havingValue = "false", matchIfMissing = true
     )
     fun poolClientNoAuth(
@@ -76,7 +76,7 @@ class ClientsConfig {
 
     @Bean
     @ConditionalOnProperty(
-        value = ["bpdm.gate-client.url.gateSecurityEnabled"],
+        value = ["bpdm.client.gate-security-enabled"],
         havingValue = "false", matchIfMissing = true
     )
     fun gateClientNoAuth(
@@ -91,7 +91,7 @@ class ClientsConfig {
 
     @Bean
     @ConditionalOnProperty(
-        value = ["bpdm.gate-client.url.poolSecurityEnabled"],
+        value = ["bpdm.client.gate-security-enabled"],
         havingValue = "true"
     )
     fun gateClient(
