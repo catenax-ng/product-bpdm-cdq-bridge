@@ -22,7 +22,7 @@ package com.catenax.bpdm.bridge.cdq.entity
 import jakarta.persistence.*
 import org.eclipse.tractusx.bpdm.common.model.BaseEntity
 import org.eclipse.tractusx.bpdm.pool.api.model.SyncStatus
-import org.eclipse.tractusx.bpdm.pool.api.model.SyncType
+
 import java.time.Instant
 
 @Entity
@@ -30,7 +30,7 @@ import java.time.Instant
 class SyncRecord(
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, unique = true)
-    var type: SyncType,
+    var type: BridgeSyncType,
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     var status: SyncStatus,
@@ -48,6 +48,13 @@ class SyncRecord(
     var startedAt: Instant? = null,
     @Column(name = "finished_at")
     var finishedAt: Instant? = null,
-) : BaseEntity()
+) : BaseEntity() {
+
+    enum class BridgeSyncType {
+        SAAS_IMPORT,
+        // Add Gate Sync value here later
+    }
+
+}
 
 
