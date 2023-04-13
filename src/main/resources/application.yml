@@ -13,6 +13,9 @@ spring:
         driverClassName: org.postgresql.Driver
         username: bpdm
         password:
+    flyway:
+        enabled: true
+        schemas: bpdmcdq
     jpa:
         database-platform: org.hibernate.dialect.PostgreSQLDialect
         properties:

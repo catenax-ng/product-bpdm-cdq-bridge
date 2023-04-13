@@ -22,6 +22,7 @@
         <kotlinlogging.version>2.1.23</kotlinlogging.version>
         <bpdm-version>4.0.0-SNAPSHOT</bpdm-version>
         <postgres.version>42.5.1</postgres.version>
+        <flyway.version>8.5.12</flyway.version>
     </properties>
 
     <pluginRepositories>
@@ -116,6 +117,12 @@
             <artifactId>postgresql</artifactId>
             <version>${postgres.version}</version>
             <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>${flyway.version}</version>
         </dependency>
 
         <!-- OpenAPI 3 auto API documentation library for Spring Boot -->
@@ -259,6 +266,11 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <version>${flyway.version}</version>
             </plugin>
         </plugins>
     </build>
