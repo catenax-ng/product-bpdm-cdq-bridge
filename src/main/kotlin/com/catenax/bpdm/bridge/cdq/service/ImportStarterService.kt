@@ -24,6 +24,7 @@ import com.catenax.bpdm.bridge.cdq.repository.ImportEntryRepository
 import org.eclipse.tractusx.bpdm.common.dto.request.PaginationRequest
 import org.eclipse.tractusx.bpdm.common.dto.response.PageResponse
 import org.eclipse.tractusx.bpdm.pool.api.model.ImportIdEntry
+import org.eclipse.tractusx.bpdm.pool.api.model.response.ImportIdMappingResponse
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 
@@ -44,5 +45,13 @@ class ImportStarterService(
         return entriesPage.toDto(entriesPage.content.map { ImportIdEntry(it.importIdentifier, it.bpn) })
     }
 
+
+    fun getImportIdEntries(importIdentifiers: Collection<String>): ImportIdMappingResponse {
+        val foundEntries = importEntryRepository.findByImportIdentifierIn(importIdentifiers)
+            .map { ImportIdEntry(it.importIdentifier, it.bpn) }
+        val missingEntries = importIdentifiers.minus(foundEntries.map { it.importId }.toSet())
+
+        return ImportIdMappingResponse(foundEntries, missingEntries)
+    }
 
 }
