@@ -20,13 +20,13 @@
 package com.catenax.bpdm.bridge.cdq.service
 
 
+import com.catenax.bpdm.bridge.cdq.dto.SyncResponse
+import com.catenax.bpdm.bridge.cdq.entity.SyncRecord
 import com.catenax.bpdm.bridge.cdq.repository.ImportEntryRepository
 import org.eclipse.tractusx.bpdm.common.dto.request.PaginationRequest
 import org.eclipse.tractusx.bpdm.common.dto.response.PageResponse
 import org.eclipse.tractusx.bpdm.pool.api.model.ImportIdEntry
-import org.eclipse.tractusx.bpdm.pool.api.model.SyncType
 import org.eclipse.tractusx.bpdm.pool.api.model.response.ImportIdMappingResponse
-import org.eclipse.tractusx.bpdm.pool.api.model.response.SyncResponse
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 
@@ -58,7 +58,7 @@ class ImportStarterService(
     }
 
     fun getImportStatus(): SyncResponse {
-        return syncRecordService.getOrCreateRecord(SyncType.SAAS_IMPORT).toDto()
+        return syncRecordService.getOrCreateRecord(SyncRecord.BridgeSyncType.SAAS_IMPORT).toDto()
     }
 
 

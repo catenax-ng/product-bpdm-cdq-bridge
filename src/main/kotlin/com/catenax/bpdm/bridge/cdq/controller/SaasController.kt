@@ -21,6 +21,7 @@ package com.catenax.bpdm.bridge.cdq.controller
 
 
 import com.catenax.bpdm.bridge.cdq.config.SaasAdapterConfigProperties
+import com.catenax.bpdm.bridge.cdq.dto.SyncResponse
 import com.catenax.bpdm.bridge.cdq.exception.BpdmRequestSizeException
 import com.catenax.bpdm.bridge.cdq.service.ImportStarterService
 import io.swagger.v3.oas.annotations.Operation
@@ -37,7 +38,6 @@ import org.eclipse.tractusx.bpdm.pool.api.model.request.LegalEntityPropertiesSea
 import org.eclipse.tractusx.bpdm.pool.api.model.request.SitePropertiesSearchRequest
 import org.eclipse.tractusx.bpdm.pool.api.model.response.ImportIdMappingResponse
 import org.eclipse.tractusx.bpdm.pool.api.model.response.LegalEntityMatchResponse
-import org.eclipse.tractusx.bpdm.pool.api.model.response.SyncResponse
 import org.springdoc.core.annotations.ParameterObject
 import org.springframework.web.bind.annotation.*
 
@@ -81,7 +81,7 @@ class SaasController(
     @GetMapping("/identifier-mappings")
     fun getImportEntries(@ParameterObject paginationRequest: PaginationRequest): PageResponse<ImportIdEntry> {
         if (paginationRequest.size > adapterConfigProperties.requestSizeLimit)
-            BpdmRequestSizeException(paginationRequest.size, adapterConfigProperties.requestSizeLimit)
+            throw BpdmRequestSizeException(paginationRequest.size, adapterConfigProperties.requestSizeLimit)
         return partnerImportService.getImportIdEntries(paginationRequest)
     }
 
@@ -101,7 +101,7 @@ class SaasController(
     @PostMapping("/identifier-mappings/filter")
     fun getImportEntries(@RequestBody importIdFilterRequest: ImportIdFilterRequest): ImportIdMappingResponse {
         if (importIdFilterRequest.importIdentifiers.size > adapterConfigProperties.requestSizeLimit)
-            BpdmRequestSizeException(
+            throw BpdmRequestSizeException(
                 importIdFilterRequest.importIdentifiers.size,
                 adapterConfigProperties.requestSizeLimit
             )

@@ -23,7 +23,6 @@ import com.catenax.bpdm.bridge.cdq.entity.SyncRecord
 import com.catenax.bpdm.bridge.cdq.repository.SyncRecordRepository
 import mu.KotlinLogging
 import org.eclipse.tractusx.bpdm.pool.api.model.SyncStatus
-import org.eclipse.tractusx.bpdm.pool.api.model.SyncType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Transactional
@@ -45,7 +44,7 @@ class SyncRecordService(
     private val logger = KotlinLogging.logger { }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    fun getOrCreateRecord(type: SyncType): SyncRecord {
+    fun getOrCreateRecord(type: SyncRecord.BridgeSyncType): SyncRecord {
         return syncRecordRepository.findByType(type) ?: run {
             logger.info { "Create new sync record entry for type $type" }
             val newEntry = SyncRecord(
