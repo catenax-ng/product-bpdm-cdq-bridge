@@ -19,11 +19,12 @@
 
 package com.catenax.bpdm.bridge.cdq.exception
 
-import org.eclipse.tractusx.bpdm.pool.api.model.SyncType
+
+import com.catenax.bpdm.bridge.cdq.entity.SyncRecord
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
 
 @ResponseStatus(HttpStatus.CONFLICT)
 class BpdmSyncConflictException(
-    val type: SyncType
+    val type: SyncRecord.BridgeSyncType
 ) : RuntimeException("Synchronization of type $type already running")

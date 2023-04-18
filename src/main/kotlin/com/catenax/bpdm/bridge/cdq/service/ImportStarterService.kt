@@ -28,6 +28,7 @@ import org.eclipse.tractusx.bpdm.common.dto.request.PaginationRequest
 import org.eclipse.tractusx.bpdm.common.dto.response.PageResponse
 import org.eclipse.tractusx.bpdm.pool.api.model.ImportIdEntry
 import org.eclipse.tractusx.bpdm.pool.api.model.response.ImportIdMappingResponse
+
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 
@@ -72,7 +73,7 @@ class ImportStarterService(
     }
 
     private fun startImport(inSync: Boolean): SyncResponse {
-        val record = syncRecordService.setSynchronizationStart(SyncType.SAAS_IMPORT)
+        val record = syncRecordService.setSynchronizationStart(SyncRecord.BridgeSyncType.SAAS_IMPORT)
         logger.debug { "Initializing SaaS import starting with ID ${record.errorSave}' for modified records from '${record.fromTime}' with async: ${!inSync}" }
 
         if (inSync)

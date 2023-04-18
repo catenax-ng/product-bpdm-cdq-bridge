@@ -19,9 +19,9 @@
 
 package com.catenax.bpdm.bridge.cdq.service
 
+import com.catenax.bpdm.bridge.cdq.entity.SyncRecord
 import jakarta.persistence.EntityManager
 import mu.KotlinLogging
-import org.eclipse.tractusx.bpdm.pool.api.model.SyncType
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import java.time.Instant
@@ -66,11 +66,11 @@ class PartnerImportService(
                     response.legalEntities.updated.size + response.sites.updated.size + response.addresses.updated.size
                 importedCount += createdCount + updatedCount
                 val progress = importedCount / response.totalElements.toFloat()
-                syncRecordService.setProgress(SyncType.SAAS_IMPORT, importedCount, progress)
+                syncRecordService.setProgress(SyncRecord.BridgeSyncType.SAAS_IMPORT, importedCount, progress)
             } catch (exception: RuntimeException) {
                 logger.error(exception) { "Exception encountered on SaaS import" }
                 syncRecordService.setSynchronizationError(
-                    SyncType.SAAS_IMPORT,
+                    SyncRecord.BridgeSyncType.SAAS_IMPORT,
                     exception.message ?: "No Message",
                     startAfter
                 )
@@ -81,7 +81,7 @@ class PartnerImportService(
             entityManager.clear()
         } while (startAfter != null)
 
-        syncRecordService.setSynchronizationSuccess(SyncType.SAAS_IMPORT)
+        syncRecordService.setSynchronizationSuccess(SyncRecord.BridgeSyncType.SAAS_IMPORT)
 
         logger.info { "SaaS import finished successfully" }
     }

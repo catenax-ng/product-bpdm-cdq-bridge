@@ -61,11 +61,11 @@ class SyncRecordService(
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    fun setSynchronizationStart(type: SyncType): SyncRecord {
+    fun setSynchronizationStart(type: SyncRecord.BridgeSyncType): SyncRecord {
         val record = getOrCreateRecord(type)
 
         if (record.status == SyncStatus.RUNNING)
-            throw BpdmSyncConflictException(SyncType.SAAS_IMPORT)
+            throw BpdmSyncConflictException(SyncRecord.BridgeSyncType.SAAS_IMPORT)
 
         logger.debug { "Set sync of type ${record.type} to status ${SyncStatus.RUNNING}" }
 
@@ -86,7 +86,7 @@ class SyncRecordService(
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    fun setProgress(type: SyncType, count: Int, progress: Float): SyncRecord {
+    fun setProgress(type: SyncRecord.BridgeSyncType, count: Int, progress: Float): SyncRecord {
         val record = getOrCreateRecord(type)
         if (record.status != SyncStatus.RUNNING)
             throw BpdmSyncStateException("Synchronization of type ${record.type} can't change progress when not running.")
@@ -100,7 +100,7 @@ class SyncRecordService(
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    fun setSynchronizationError(type: SyncType, errorMessage: String, saveState: String?): SyncRecord {
+    fun setSynchronizationError(type: SyncRecord.BridgeSyncType, errorMessage: String, saveState: String?): SyncRecord {
         val record = getOrCreateRecord(type)
         logger.debug { "Set sync of type ${record.type} to status ${SyncStatus.ERROR} with message $errorMessage" }
 
@@ -113,7 +113,7 @@ class SyncRecordService(
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
-    fun setSynchronizationSuccess(type: SyncType): SyncRecord {
+    fun setSynchronizationSuccess(type: SyncRecord.BridgeSyncType): SyncRecord {
         val record = getOrCreateRecord(type)
         if (record.status != SyncStatus.RUNNING)
             throw BpdmSyncStateException("Synchronization of type ${record.type} can't switch from state ${record.status} to ${SyncStatus.SUCCESS}.")
