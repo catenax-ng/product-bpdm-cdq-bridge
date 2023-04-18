@@ -6,6 +6,17 @@ bpdm:
         host: localhost
     pool-client:
         url: http://localhost:8080
+    saas:
+        host: ${BPDM_SAAS_HOST}
+        api: data-exchange/rest/v4
+        storage: ${BPDM_SAAS_STORAGE}
+        datasource: ${BPDM_SAAS_DATASOURCE}
+        api-key: ${BPDM_SAAS_KEY}
+        import-limit: 100
+        import-scheduler-cron-expr: "-"
+        export-page-size: 100
+        treat-invalid-bpn-as-new: false
+        request-size-limit: 500
 
 spring:
     datasource:

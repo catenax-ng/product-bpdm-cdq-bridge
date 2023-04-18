@@ -41,7 +41,7 @@ class ClientsConfig {
 
     @Bean
     @ConditionalOnProperty(
-        value = ["bpdm.pool-client.url.poolSecurityEnabled"],
+        value = ["bpdm.pool-client.pool-security-enabled"],
         havingValue = "true"
     )
     fun poolClient(
@@ -61,7 +61,7 @@ class ClientsConfig {
 
     @Bean
     @ConditionalOnProperty(
-        value = ["bpdm.pool-client.url.poolSecurityEnabled"],
+        value = ["bpdm.pool-client.pool-security-enabled"],
         havingValue = "false", matchIfMissing = true
     )
     fun poolClientNoAuth(env: Environment, poolSecurityConfigProperties: PoolSecurityConfigProperties): PoolClientImpl {
