@@ -22,27 +22,10 @@ package com.catenax.bpdm.bridge.cdq.config
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 
-@ConfigurationProperties(prefix = "bpdm.saas")
-class SaasAdapterConfigProperties(
-
-    val enabled: Boolean = true,
-    val host: String = "http://localhost:1234",
-    storage: String = "storage_id",
-    val datasource: String = "datasource_id",
-    val apiKey: String = "",
-    val importLimit: Int = 100,
-    val importSchedulerCronExpr: String = "-",
-    val legalEntityType: String = "LEGAL_ENTITY",
-    val siteType: String = "ORGANIZATIONAL_UNIT",
-    val addressType: String = "BP_ADDRESS",
-    val parentRelationType: String = "PARENT",
-    val bpnKey: String = "CX_BPN",
-    val treatInvalidBpnAsNew: Boolean = false,
-    val requestSizeLimit: Int = 500,
-    val dataExchangeApiUrl: String = "/data-exchange/rest/v4/storages/${storage}",
-) {
-    private val exchangeApiUrl: String = "data-exchange/rest/v4"
-    val readBusinessPartnerUrl = "/${exchangeApiUrl}/storages/${storage}/businesspartners"
-
-
-}
+@ConfigurationProperties(prefix = "bpdm.bpn")
+data class BpnConfigProperties(
+    val agencyName: String = "Catena-X",
+    val agencyKey: String = "CATENAX",
+    var name: String = "Business Partner Number",
+    val id: String = "CX_BPN"
+)

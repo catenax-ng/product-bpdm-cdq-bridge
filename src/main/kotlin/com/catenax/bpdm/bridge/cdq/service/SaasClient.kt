@@ -20,19 +20,28 @@
 package com.catenax.bpdm.bridge.cdq.service
 
 import com.catenax.bpdm.bridge.cdq.config.SaasAdapterConfigProperties
+import com.catenax.bpdm.bridge.cdq.exception.SaasRequestException
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.eclipse.tractusx.bpdm.common.dto.saas.BusinessPartnerSaas
 import org.eclipse.tractusx.bpdm.common.dto.saas.PagedResponseSaas
+import org.eclipse.tractusx.bpdm.common.dto.saas.UpsertRequest
+import org.eclipse.tractusx.bpdm.common.dto.saas.UpsertResponse
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
+private const val BUSINESS_PARTNER_PATH = "/businesspartners"
+private const val FETCH_BUSINESS_PARTNER_PATH = "$BUSINESS_PARTNER_PATH/fetch"
+
 @Service
 class SaasClient(
     private val webClient: WebClient,
     private val adapterProperties: SaasAdapterConfigProperties,
+    private val objectMapper: ObjectMapper
 ) {
+
 
     fun readBusinessPartners(modifiedAfter: Instant, startAfter: String?): PagedResponseSaas<BusinessPartnerSaas> {
         return webClient
@@ -69,6 +78,34 @@ class SaasClient(
             .retrieve()
             .bodyToMono<PagedResponseSaas<BusinessPartnerSaas>>()
             .block()!!
+    }
+
+    fun upsertBpnm(bpnList: List<BusinessPartnerSaas>) {
+        return upsertBusinessPartners(bpnList)
+    }
+
+    private fun upsertBusinessPartners(businessPartners: Collection<BusinessPartnerSaas>) {
+        val upsertRequest =
+            UpsertRequest(
+                adapterProperties.datasource,
+                businessPartners,
+                listOf(
+                    UpsertRequest.SaasFeatures.UPSERT_BY_EXTERNAL_ID,
+                    UpsertRequest.SaasFeatures.API_ERROR_ON_FAILURES
+                )
+            )
+
+        try {
+            webClient
+                .put()
+                .uri(adapterProperties.dataExchangeApiUrl + BUSINESS_PARTNER_PATH)
+                .bodyValue(objectMapper.writeValueAsString(upsertRequest))
+                .retrieve()
+                .bodyToMono<UpsertResponse>()
+                .block()!!
+        } catch (e: Exception) {
+            throw SaasRequestException("Upsert business partners request failed.", e)
+        }
     }
 
     private fun toModifiedAfterFormat(dateTime: Instant): String {
