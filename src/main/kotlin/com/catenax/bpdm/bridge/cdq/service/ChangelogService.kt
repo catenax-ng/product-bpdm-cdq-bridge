@@ -36,7 +36,9 @@ import org.springframework.stereotype.Service
 @Service
 class ChangelogService(
     val gateClient: GateClientImpl,
-    val syncRecordService: SyncRecordService
+    val syncRecordService: SyncRecordService,
+    val saasClient: SaasClient,
+    val saasRequestMappingService: SaasRequestMappingService
 ) {
 
     private val logger = KotlinLogging.logger { }
@@ -112,7 +114,7 @@ class ChangelogService(
             }
         }
 
-        upsertBpnOnSaas(bpnCollection)
+        upsertBpnOnSaas(bpnCollection, syncType)
 
     }
 
@@ -144,9 +146,64 @@ class ChangelogService(
     }
 
 
-    private fun upsertBpnOnSaas(bpn: ArrayList<BpnResponse>) {
+    private fun upsertBpnOnSaas(bpn: ArrayList<BpnResponse>, syncType: SyncRecord.BridgeSyncType) {
+
+        val updatedBpnCollection = bpn.map { element ->
+            when (element) {
+                is BpnResponse.AddressResponse -> saasRequestMappingService.toSaasModel(element.address)
+                is BpnResponse.LegalEntityResponse -> saasRequestMappingService.toSaasModel(element.legalEntity)
+                is BpnResponse.SiteResponse -> saasRequestMappingService.toSaasModel(element.site)
+            }
+        }
+
+
+        saasClient.upsertBpnm(updatedBpnCollection)
+
+        if (syncType == SyncRecord.BridgeSyncType.CHANGELOG_IMPORT_ADDRESS) {
+            deleteAddressRelationsAndCreateNewOnes(bpn)
+        } else if (syncType == SyncRecord.BridgeSyncType.CHANGELOG_IMPORT_SITE) {
+            deleteSiteRelationsAndCreateNewOnes(bpn)
+        }
 
 
     }
 
+    private fun deleteSiteRelationsAndCreateNewOnes(bpn: ArrayList<BpnResponse>) {
+        val sites = bpn.filterIsInstance<BpnResponse.SiteResponse>().map { it.site }
+        val siteResponseList = sites.map { saasRequestMappingService.toSaasModel(it) }
+        val sitePage = saasClient.getSites(externalIds = siteResponseList.mapNotNull { it.externalId })
+        saasClient.deleteParentRelations(sitePage.values)
+        val relations = sites.map {
+            SaasClient.SiteLegalEntityRelation(
+                siteExternalId = it.externalId,
+                legalEntityExternalId = it.legalEntityExternalId
+            )
+        }.toList()
+        saasClient.upsertSiteRelations(relations)
+    }
+
+    private fun deleteAddressRelationsAndCreateNewOnes(bpn: ArrayList<BpnResponse>) {
+        val addresses = bpn.filterIsInstance<BpnResponse.AddressResponse>().map { it.address }
+        val addressResponseList = addresses.map { saasRequestMappingService.toSaasModel(it) }
+        val addressesPage = saasClient.getAddresses(externalIds = addressResponseList.mapNotNull { it.externalId })
+        saasClient.deleteParentRelations(addressesPage.values)
+
+        val legalEntityRelations = addresses.filter {
+            it.legalEntityExternalId != null
+        }.map {
+            SaasClient.AddressLegalEntityRelation(
+                addressExternalId = it.externalId,
+                legalEntityExternalId = it.legalEntityExternalId!!
+            )
+        }.toList()
+        val siteRelations = addresses.filter {
+            it.siteExternalId != null
+        }.map {
+            SaasClient.AddressSiteRelation(
+                addressExternalId = it.externalId,
+                siteExternalId = it.siteExternalId!!
+            )
+        }.toList()
+        saasClient.upsertAddressRelations(legalEntityRelations, siteRelations)
+    }
 }

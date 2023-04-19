@@ -22,10 +22,8 @@ package com.catenax.bpdm.bridge.cdq.service
 import com.catenax.bpdm.bridge.cdq.config.SaasAdapterConfigProperties
 import com.catenax.bpdm.bridge.cdq.exception.SaasRequestException
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.eclipse.tractusx.bpdm.common.dto.saas.BusinessPartnerSaas
-import org.eclipse.tractusx.bpdm.common.dto.saas.PagedResponseSaas
-import org.eclipse.tractusx.bpdm.common.dto.saas.UpsertRequest
-import org.eclipse.tractusx.bpdm.common.dto.saas.UpsertResponse
+import org.eclipse.tractusx.bpdm.common.dto.saas.*
+import org.eclipse.tractusx.bpdm.common.service.SaasMappings
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
@@ -33,7 +31,9 @@ import java.time.Instant
 import java.time.format.DateTimeFormatter
 
 private const val BUSINESS_PARTNER_PATH = "/businesspartners"
-private const val FETCH_BUSINESS_PARTNER_PATH = "$BUSINESS_PARTNER_PATH/fetch"
+private const val RELATIONS_PATH = "/relations"
+private const val DELETE_RELATIONS_PATH = "$RELATIONS_PATH/delete"
+const val PARENT_RELATION_TYPE_KEY = "PARENT"
 
 @Service
 class SaasClient(
@@ -84,6 +84,141 @@ class SaasClient(
         return upsertBusinessPartners(bpnList)
     }
 
+    fun deleteParentRelations(businessPartners: Collection<BusinessPartnerSaas>) {
+        val relationsToDelete = businessPartners
+            .flatMap { businessPartner ->
+                businessPartner.relations
+                    .filter { it.type?.technicalKey == PARENT_RELATION_TYPE_KEY }
+                    .filter { it.endNode == businessPartner.externalId }
+            }
+            .map { SaasMappings.toRelationToDelete(it) }
+        if (relationsToDelete.isNotEmpty()) {
+            deleteRelations(relationsToDelete)
+        }
+    }
+
+    fun deleteRelations(relations: Collection<DeleteRelationsRequestSaas.RelationToDeleteSaas>) {
+        try {
+            webClient
+                .post()
+                .uri(adapterProperties.dataExchangeApiUrl + DELETE_RELATIONS_PATH)
+                .bodyValue(objectMapper.writeValueAsString(DeleteRelationsRequestSaas(relations)))
+                .retrieve()
+                .bodyToMono<DeleteRelationsResponseSaas>()
+                .block()!!
+        } catch (e: Exception) {
+            throw SaasRequestException("Delete relations request failed.", e)
+        }
+    }
+
+    fun getAddresses(limit: Int? = null, startAfter: String? = null, externalIds: Collection<String>? = null) =
+        getBusinessPartners(
+            limit,
+            startAfter,
+            externalIds,
+            adapterProperties.addressType,
+            listOf("USE_NEXT_START_AFTER", "FETCH_RELATIONS")
+        )
+
+
+    fun getBusinessPartners(
+        limit: Int? = null,
+        startAfter: String? = null,
+        externalIds: Collection<String>? = null,
+        type: String? = null,
+        featuresOn: Collection<String>? = null
+    ): PagedResponseSaas<BusinessPartnerSaas> {
+        val partnerCollection = try {
+            webClient
+                .get()
+                .uri { builder ->
+                    builder
+                        .path(adapterProperties.dataExchangeApiUrl + BUSINESS_PARTNER_PATH)
+                        .queryParam("dataSource", adapterProperties.datasource)
+                    if (type != null) builder.queryParam("typeTechnicalKeys", type)
+                    if (startAfter != null) builder.queryParam("startAfter", startAfter)
+                    if (limit != null) builder.queryParam("limit", limit)
+                    if (!featuresOn.isNullOrEmpty()) builder.queryParam("featuresOn", featuresOn.joinToString(","))
+                    if (!externalIds.isNullOrEmpty()) builder.queryParam("externalId", externalIds.joinToString(","))
+                    builder.build()
+                }
+                .retrieve()
+                .bodyToMono<PagedResponseSaas<BusinessPartnerSaas>>()
+                .block()!!
+        } catch (e: Exception) {
+            e.printStackTrace()
+            throw SaasRequestException("Get business partners request failed.", e)
+        }
+        return partnerCollection
+    }
+
+    fun getSites(limit: Int? = null, startAfter: String? = null, externalIds: Collection<String>? = null) =
+        getBusinessPartners(
+            limit,
+            startAfter,
+            externalIds,
+            adapterProperties.siteType,
+            listOf("USE_NEXT_START_AFTER", "FETCH_RELATIONS")
+        )
+
+    fun upsertSiteRelations(relations: Collection<SiteLegalEntityRelation>) {
+        val relationsSaas = relations.map {
+            RelationSaas(
+                startNode = it.legalEntityExternalId,
+                startNodeDataSource = adapterProperties.datasource,
+                endNode = it.siteExternalId,
+                endNodeDataSource = adapterProperties.datasource,
+                type = TypeKeyNameSaas(technicalKey = PARENT_RELATION_TYPE_KEY)
+            )
+        }.toList()
+        upsertBusinessPartnerRelations(relationsSaas)
+    }
+
+    fun upsertAddressRelations(
+        legalEntityRelations: Collection<AddressLegalEntityRelation>,
+        siteRelations: Collection<AddressSiteRelation>
+    ) {
+        val legalEntityRelationsSaas = legalEntityRelations.map {
+            RelationSaas(
+                startNode = it.legalEntityExternalId,
+                startNodeDataSource = adapterProperties.datasource,
+                endNode = it.addressExternalId,
+                endNodeDataSource = adapterProperties.datasource,
+                type = TypeKeyNameSaas(technicalKey = PARENT_RELATION_TYPE_KEY)
+            )
+        }.toList()
+        val siteRelationsSaas = siteRelations.map {
+            RelationSaas(
+                startNode = it.siteExternalId,
+                startNodeDataSource = adapterProperties.datasource,
+                endNode = it.addressExternalId,
+                endNodeDataSource = adapterProperties.datasource,
+                type = TypeKeyNameSaas(technicalKey = PARENT_RELATION_TYPE_KEY)
+            )
+        }.toList()
+        upsertBusinessPartnerRelations(legalEntityRelationsSaas.plus(siteRelationsSaas))
+    }
+
+    private fun upsertBusinessPartnerRelations(relations: Collection<RelationSaas>) {
+        val upsertRelationsRequest = UpsertRelationsRequestSaas(relations)
+        val upsertResponse = try {
+            webClient
+                .put()
+                .uri(adapterProperties.dataExchangeApiUrl + RELATIONS_PATH)
+                .bodyValue(objectMapper.writeValueAsString(upsertRelationsRequest))
+                .retrieve()
+                .bodyToMono<UpsertRelationsResponseSaas>()
+                .block()!!
+        } catch (e: Exception) {
+            throw SaasRequestException("Upsert business partner relations request failed.", e)
+        }
+
+        if (upsertResponse.failures.isNotEmpty() || upsertResponse.numberOfFailed > 0) {
+            throw SaasRequestException("Upsert business partner relations request failed for some relations.")
+        }
+    }
+
+
     private fun upsertBusinessPartners(businessPartners: Collection<BusinessPartnerSaas>) {
         val upsertRequest =
             UpsertRequest(
@@ -111,5 +246,20 @@ class SaasClient(
     private fun toModifiedAfterFormat(dateTime: Instant): String {
         return DateTimeFormatter.ISO_INSTANT.format(dateTime)
     }
+
+    data class SiteLegalEntityRelation(
+        val siteExternalId: String,
+        val legalEntityExternalId: String
+    )
+
+    data class AddressLegalEntityRelation(
+        val addressExternalId: String,
+        val legalEntityExternalId: String
+    )
+
+    data class AddressSiteRelation(
+        val addressExternalId: String,
+        val siteExternalId: String
+    )
 
 }
