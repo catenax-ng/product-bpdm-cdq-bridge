@@ -20,7 +20,9 @@ bpdm:
         treat-invalid-bpn-as-new: false
         request-size-limit: 500
     change-log:
-        import-scheduler-cron-expr: "0 * * * * *"
+        import-scheduler-cron-expr-site: "0 * * * * *"
+        import-scheduler-cron-expr-address: "0 * * * * *"
+        import-scheduler-cron-expr-legal-entity: "0 * * * * *"
 
 spring:
     datasource:

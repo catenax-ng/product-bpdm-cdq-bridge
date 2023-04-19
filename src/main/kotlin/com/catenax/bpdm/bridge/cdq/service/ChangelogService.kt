@@ -24,12 +24,9 @@ import com.catenax.bpdm.bridge.cdq.entity.SyncRecord
 import mu.KotlinLogging
 import org.eclipse.tractusx.bpdm.common.dto.request.PaginationRequest
 import org.eclipse.tractusx.bpdm.gate.api.client.GateClientImpl
-import org.eclipse.tractusx.bpdm.gate.api.model.AddressGateInputResponse
-import org.eclipse.tractusx.bpdm.gate.api.model.LegalEntityGateInputResponse
-import org.eclipse.tractusx.bpdm.gate.api.model.SiteGateInputResponse
+import org.eclipse.tractusx.bpdm.gate.api.model.request.PaginationStartAfterRequest
 import org.eclipse.tractusx.bpdm.gate.api.model.response.LsaType
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageImpl
+import org.eclipse.tractusx.bpdm.gate.api.model.response.PageStartAfterResponse
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 
@@ -39,8 +36,7 @@ import org.springframework.stereotype.Service
 @Service
 class ChangelogService(
     val gateClient: GateClientImpl,
-    val saasClient: SaasClient,
-    val syncRecordService: SyncRecordService,
+    val syncRecordService: SyncRecordService
 ) {
 
     private val logger = KotlinLogging.logger { }
@@ -48,79 +44,101 @@ class ChangelogService(
     /**
      * Periodically check business partner changelog
      */
-    @Scheduled(cron = "\${bpdm.change-log.import-scheduler-cron-expr:-}", zone = "UTC")
-    fun import() {
-        val record = syncRecordService.setSynchronizationStart(SyncRecord.BridgeSyncType.CHANGELOG_IMPORT)
+    @Scheduled(cron = "\${bpdm.change-log.import-scheduler-cron-expr-address:-}", zone = "UTC")
+    fun importAddress() {
+        importByType(SyncRecord.BridgeSyncType.CHANGELOG_IMPORT_ADDRESS, LsaType.Address)
+    }
+
+    @Scheduled(cron = "\${bpdm.change-log.import-scheduler-cron-expr-site:-}", zone = "UTC")
+    fun importSite() {
+        importByType(SyncRecord.BridgeSyncType.CHANGELOG_IMPORT_SITE, LsaType.Site)
+    }
+
+    @Scheduled(cron = "\${bpdm.change-log.import-scheduler-cron-expr-legal-entity:-}", zone = "UTC")
+    fun importLegalEntity() {
+        importByType(SyncRecord.BridgeSyncType.CHANGELOG_IMPORT_LEGAL_ENTITY, LsaType.LegalEntity)
+    }
+
+    private fun importByType(syncType: SyncRecord.BridgeSyncType, lsaType: LsaType) {
+        val record = syncRecordService.setSynchronizationStart(syncType)
         try {
-            importPaginated(record)
+            importPaginated(record, lsaType)
+            syncRecordService.setSynchronizationSuccess(syncType)
         } catch (e: Exception) {
             logger.error(e) { "Exception encountered on SaaS import" }
             syncRecordService.setSynchronizationError(
-                SyncRecord.BridgeSyncType.CHANGELOG_IMPORT,
+                syncType,
                 e.message ?: "No Message",
                 null // Replace with startAfter value if applicable
             )
         }
     }
 
-    private fun importPaginated(record: SyncRecord) {
-
-
+    private fun importPaginated(record: SyncRecord, lsaType: LsaType) {
         val changelogList = gateClient.changelog().getChangelogEntriesLsaType(
             paginationRequest = PaginationRequest(),
             fromTime = record.fromTime,
-            lsaType = null
+            lsaType = lsaType
         ).content
 
-        val groupedChangelogList = changelogList.groupBy { it.businessPartnerType }
+        val externalIds = changelogList.map { it.externalId }
 
-        val bpnCollection = ArrayList<BpnResponse>()
-        groupedChangelogList.forEach { (businessPartnerType, changelogEntries) ->
-            val externalIds = changelogEntries.map { it.externalId }
-            val bpns = fetchBpnBasedOnChangeLogEntries(externalIds, businessPartnerType)
-            bpnCollection.addAll(bpns)
+        val syncType = when (lsaType) {
+            LsaType.Address -> SyncRecord.BridgeSyncType.CHANGELOG_IMPORT_ADDRESS
+            LsaType.LegalEntity -> SyncRecord.BridgeSyncType.CHANGELOG_IMPORT_LEGAL_ENTITY
+            else -> SyncRecord.BridgeSyncType.CHANGELOG_IMPORT_SITE
         }
+
+
+        val bpnCollection = fetchBpnBasedOnChangeLogEntries(
+            externalIds,
+            syncType,
+            when (lsaType) { // Determines the fetchFunction based on lsaType
+                LsaType.Address -> gateClient.addresses()::getAddressesByExternalIds
+                LsaType.LegalEntity -> gateClient.legalEntities()::getLegalEntitiesByExternalIds
+                else -> gateClient.sites()::getSitesByExternalIds
+            },
+            when (lsaType) { // Determines the responseMapper based on lsaType
+                LsaType.Address -> BpnResponse::AddressResponse
+                LsaType.LegalEntity -> BpnResponse::LegalEntityResponse
+                else -> BpnResponse::SiteResponse
+            }
+        )
 
         upsertBpnOnSaas(bpnCollection)
 
-        syncRecordService.setSynchronizationSuccess(SyncRecord.BridgeSyncType.CHANGELOG_IMPORT)
     }
 
-    private fun fetchBpnBasedOnChangeLogEntries(
+    private fun <T> fetchBpnBasedOnChangeLogEntries(
         externalIds: List<String>,
-        businessPartnerType: LsaType
-    ): List<BpnResponse> {
+        syncType: SyncRecord.BridgeSyncType,
+        fetchFunction: (PaginationStartAfterRequest, List<String>) -> PageStartAfterResponse<T>,
+        responseMapper: (T) -> BpnResponse
+    ): ArrayList<BpnResponse> {
         val resultList = mutableListOf<BpnResponse>()
-        var currentPage = 0
-        var totalPages: Int
-        do {
-            val pageResponse: Page<*> = PageImpl(emptyList<Any>())
-//            = when (businessPartnerType) {
-//                //TODO methods on gateClient need to be created
-//                LsaType.Address -> gateClient.addresses().getAddressesByExternalIds(PaginationRequest(page = currentPage), externalIds)
-//                LsaType.LegalEntity -> gateClient.legalEntities().getLegalEntitiesByExternalIds(PaginationRequest(page = currentPage), externalIds)
-//                else -> gateClient.sites().getSitesByExternalIds(PaginationRequest(page = currentPage), externalIds)
-//            }
+        var startAfter: String? = null
+        var importedCount = 0
 
-            totalPages = pageResponse.totalPages
+        do {
+            val pageResponse = fetchFunction(PaginationStartAfterRequest(startAfter = startAfter), externalIds)
+            startAfter = pageResponse.nextStartAfter
+            val progress = importedCount / pageResponse.total.toFloat()
+            syncRecordService.setProgress(syncType, importedCount, progress)
 
             pageResponse.content.forEach { item ->
-                val bpnResponse = when (businessPartnerType) {
-                    LsaType.Address -> BpnResponse.AddressResponse(item as AddressGateInputResponse)
-                    LsaType.LegalEntity -> BpnResponse.LegalEntityResponse(item as LegalEntityGateInputResponse)
-                    else -> BpnResponse.SiteResponse(item as SiteGateInputResponse)
-                }
-                resultList.add(bpnResponse)
+                resultList.add(responseMapper(item))
             }
 
-            currentPage++
-        } while (currentPage < totalPages)
+            importedCount += pageResponse.content.size
+        } while (startAfter != null)
 
-        return resultList
+        return ArrayList(resultList)
     }
 
+
     private fun upsertBpnOnSaas(bpn: ArrayList<BpnResponse>) {
-        // Not implemented yet
+
+
     }
 
 }
