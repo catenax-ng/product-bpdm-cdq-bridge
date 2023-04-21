@@ -52,6 +52,9 @@ class SyncRecord(
 
     enum class BridgeSyncType {
         SAAS_IMPORT,
+        CHANGELOG_IMPORT_ADDRESS,
+        CHANGELOG_IMPORT_SITE,
+        CHANGELOG_IMPORT_LEGAL_ENTITY
         // Add Gate Sync value here later
     }
 

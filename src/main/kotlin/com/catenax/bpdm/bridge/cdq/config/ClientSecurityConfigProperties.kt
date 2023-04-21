@@ -21,8 +21,9 @@ package com.catenax.bpdm.bridge.cdq.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 
-@ConfigurationProperties(prefix = "bpdm.pool-client")
-data class PoolSecurityConfigProperties(
+@ConfigurationProperties(prefix = "bpdm.client")
+data class ClientSecurityConfigProperties(
     val oauth2ClientRegistration: String = "bridge-client",
-    val poolSecurityEnabled: Boolean = false
+    val poolSecurityEnabled: Boolean = false,
+    val gateSecurityEnabled: Boolean = false
 )
