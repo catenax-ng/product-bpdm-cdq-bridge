@@ -89,25 +89,33 @@ class ChangelogService(
             else -> SyncRecord.BridgeSyncType.CHANGELOG_IMPORT_SITE
         }
 
-
-        val bpnCollection = fetchBpnBasedOnChangeLogEntries(
-            externalIds,
-            syncType,
-            when (lsaType) { // Determines the fetchFunction based on lsaType
-                LsaType.Address -> gateClient.addresses()::getAddressesByExternalIds
-                LsaType.LegalEntity -> gateClient.legalEntities()::getLegalEntitiesByExternalIds
-                else -> gateClient.sites()::getSitesByExternalIds
-            },
-            when (lsaType) { // Determines the responseMapper based on lsaType
-                LsaType.Address -> BpnResponse::AddressResponse
-                LsaType.LegalEntity -> BpnResponse::LegalEntityResponse
-                else -> BpnResponse::SiteResponse
+        val bpnCollection = when (lsaType) {
+            LsaType.Address -> {
+                fetchBpnBasedOnChangeLogEntries(
+                    externalIds, syncType,
+                    gateClient.addresses()::getAddressesByExternalIds, BpnResponse::AddressResponse
+                )
             }
-        )
+
+            LsaType.LegalEntity -> {
+                fetchBpnBasedOnChangeLogEntries(
+                    externalIds, syncType,
+                    gateClient.legalEntities()::getLegalEntitiesByExternalIds, BpnResponse::LegalEntityResponse
+                )
+            }
+
+            else -> {
+                fetchBpnBasedOnChangeLogEntries(
+                    externalIds, syncType,
+                    gateClient.sites()::getSitesByExternalIds, BpnResponse::SiteResponse
+                )
+            }
+        }
 
         upsertBpnOnSaas(bpnCollection)
 
     }
+
 
     private fun <T> fetchBpnBasedOnChangeLogEntries(
         externalIds: List<String>,
