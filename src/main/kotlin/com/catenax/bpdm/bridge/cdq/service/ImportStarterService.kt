@@ -83,24 +83,6 @@ class ImportStarterService(
         return record.toDto()
     }
 
-    /**
-     * Import records asynchronously and return a [SyncResponse] with information about the started import
-     */
-    fun importAsync(): SyncResponse {
-        return startImport(false)
-    }
-
-    private fun startImport(inSync: Boolean): SyncResponse {
-        val record = syncRecordService.setSynchronizationStart(SyncType.SAAS_IMPORT)
-        logger.debug { "Initializing SaaS import starting with ID ${record.errorSave}' for modified records from '${record.fromTime}' with async: ${!inSync}" }
-
-        if (inSync)
-            importService.importPaginated(record.fromTime, record.errorSave)
-        else
-            importService.importPaginatedAsync(record.fromTime, record.errorSave)
-
-        return record.toDto()
-    }
 
 
 }

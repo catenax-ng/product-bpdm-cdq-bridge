@@ -21,6 +21,7 @@ package com.catenax.bpdm.bridge.cdq.config
 
 import jakarta.annotation.PostConstruct
 import mu.KotlinLogging
+import org.eclipse.tractusx.bpdm.common.service.ValidationMapper
 
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.context.annotation.Bean
@@ -57,11 +58,17 @@ class SaasAdapterConfig(
     fun adapterClient(): WebClient {
         return WebClient.builder()
             .exchangeStrategies(ExchangeStrategies.builder()
-                .codecs { codecs: ClientCodecConfigurer -> codecs.defaultCodecs().maxInMemorySize(memorySize) }
+                .codecs { codecs: ClientCodecConfigurer ->
+                    codecs.defaultCodecs().maxInMemorySize(memorySize)
+                }
                 .build())
             .baseUrl(adapterProperties.host)
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .defaultHeader("x-api-key", adapterProperties.apiKey)
             .build()
     }
+
+    @Bean
+    fun validationMapper() =
+        ValidationMapper()
 }
