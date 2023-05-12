@@ -32,5 +32,6 @@ CREATE TABLE sync_records
     CONSTRAINT uc_sync_records_uuid UNIQUE (uuid)
 );
 
+
 ALTER TABLE sync_records
     ALTER COLUMN from_time TYPE TIMESTAMP WITH TIME ZONE USING from_time AT TIME ZONE 'UTC';

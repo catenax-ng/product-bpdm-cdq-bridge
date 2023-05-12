@@ -6,6 +6,8 @@ bpdm:
         host: localhost
     pool-client:
         url: http://localhost:8080
+    gate-client:
+        url: http://localhost:8081
     saas:
         host: ${BPDM_SAAS_HOST}
         api: data-exchange/rest/v4
@@ -17,6 +19,8 @@ bpdm:
         export-page-size: 100
         treat-invalid-bpn-as-new: false
         request-size-limit: 500
+    change-log:
+        import-scheduler-cron-expr: "0 * * * * *"
 
 spring:
     datasource:
