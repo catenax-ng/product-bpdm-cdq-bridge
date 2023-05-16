@@ -48,17 +48,17 @@ class ChangelogService(
      */
     @Scheduled(cron = "\${bpdm.change-log.import-scheduler-cron-expr-address:-}", zone = "UTC")
     fun importAddress() {
-        importByType(SyncRecord.BridgeSyncType.CHANGELOG_IMPORT_ADDRESS, LsaType.Address)
+        importByType(SyncRecord.BridgeSyncType.GATE_IMPORT_ADDRESS, LsaType.Address)
     }
 
     @Scheduled(cron = "\${bpdm.change-log.import-scheduler-cron-expr-site:-}", zone = "UTC")
     fun importSite() {
-        importByType(SyncRecord.BridgeSyncType.CHANGELOG_IMPORT_SITE, LsaType.Site)
+        importByType(SyncRecord.BridgeSyncType.GATE_IMPORT_SITE, LsaType.Site)
     }
 
     @Scheduled(cron = "\${bpdm.change-log.import-scheduler-cron-expr-legal-entity:-}", zone = "UTC")
     fun importLegalEntity() {
-        importByType(SyncRecord.BridgeSyncType.CHANGELOG_IMPORT_LEGAL_ENTITY, LsaType.LegalEntity)
+        importByType(SyncRecord.BridgeSyncType.GATE_IMPORT_SITE, LsaType.LegalEntity)
     }
 
     private fun importByType(syncType: SyncRecord.BridgeSyncType, lsaType: LsaType) {
@@ -86,9 +86,9 @@ class ChangelogService(
         val externalIds = changelogList.map { it.externalId }
 
         val syncType = when (lsaType) {
-            LsaType.Address -> SyncRecord.BridgeSyncType.CHANGELOG_IMPORT_ADDRESS
-            LsaType.LegalEntity -> SyncRecord.BridgeSyncType.CHANGELOG_IMPORT_LEGAL_ENTITY
-            else -> SyncRecord.BridgeSyncType.CHANGELOG_IMPORT_SITE
+            LsaType.Address -> SyncRecord.BridgeSyncType.GATE_IMPORT_ADDRESS
+            LsaType.LegalEntity -> SyncRecord.BridgeSyncType.GATE_IMPORT_LEGAL_ENTITY
+            else -> SyncRecord.BridgeSyncType.GATE_IMPORT_SITE
         }
 
         val bpnCollection = when (lsaType) {
@@ -159,9 +159,9 @@ class ChangelogService(
 
         saasClient.upsertBpnm(updatedBpnCollection)
 
-        if (syncType == SyncRecord.BridgeSyncType.CHANGELOG_IMPORT_ADDRESS) {
+        if (syncType == SyncRecord.BridgeSyncType.GATE_IMPORT_ADDRESS) {
             deleteAddressRelationsAndCreateNewOnes(bpn)
-        } else if (syncType == SyncRecord.BridgeSyncType.CHANGELOG_IMPORT_SITE) {
+        } else if (syncType == SyncRecord.BridgeSyncType.GATE_IMPORT_SITE) {
             deleteSiteRelationsAndCreateNewOnes(bpn)
         }
 
