@@ -24,7 +24,7 @@
         <postgres.version>42.5.1</postgres.version>
         <flyway.version>8.5.12</flyway.version>
         <testcontainers.version>1.17.2</testcontainers.version>
-        <wiremock.version>2.35.0</wiremock.version>
+        <wiremock.version>2.35.1</wiremock.version>
     </properties>
 
     <pluginRepositories>
